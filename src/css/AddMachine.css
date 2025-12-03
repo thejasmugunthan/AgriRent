@@ -1,0 +1,8 @@
+.add-machine-container { padding: 40px; display:flex; justify-content:center; }
+.form-card { width:780px; background:#fff; padding:28px; border-radius:12px; box-shadow:0 6px 22px rgba(0,0,0,0.06); }
+.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:12px; }
+input[type="file"] { margin-top:8px; }
+input, select { padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:12px; }
+.predict-btn { width:100%; background:#0a5d0a; color:#fff; padding:14px; border-radius:10px; border:none; font-size:16px; }
+.prediction-box { background:#f2fff2; border-left:6px solid #0a8a0a; padding:16px; margin-top:18px; border-radius:8px; }
+.save-btn { background:#0b3a91; color:#fff; padding:10px 16px; border-radius:8px; border:none; width:100%; margin-top:12px; }
