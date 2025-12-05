@@ -31,7 +31,7 @@ export default function MyRentals() {
   const filteredRentals = rentals.filter((r) => r.status === activeTab);
 
   /* ============================================================
-     CHAT HANDLER — Only allowed when owner has ACCEPTED
+     CHAT HANDLER
   ============================================================ */
   const handleChat = (r) => {
     if (r.status !== "active") {
@@ -126,13 +126,11 @@ export default function MyRentals() {
                 )}
 
                 <p>
-                  <b>Start:</b>{" "}
-                  {new Date(r.startTime).toLocaleDateString()}
+                  <b>Start:</b> {new Date(r.startTime).toLocaleDateString()}
                 </p>
 
                 <p>
-                  <b>End:</b>{" "}
-                  {new Date(r.endTime).toLocaleDateString()}
+                  <b>End:</b> {new Date(r.endTime).toLocaleDateString()}
                 </p>
 
                 <p>
@@ -151,9 +149,7 @@ export default function MyRentals() {
                 {/* View Machine */}
                 <button
                   className="btn details-btn"
-                  onClick={() =>
-                    navigate(`/machine/${r.machineId?._id}`)
-                  }
+                  onClick={() => navigate(`/machine/${r.machineId?._id}`)}
                 >
                   View Machine
                 </button>
@@ -164,8 +160,9 @@ export default function MyRentals() {
                     className="btn cancel-btn"
                     onClick={async () => {
                       if (!window.confirm("Cancel this rental?")) return;
+
                       try {
-                        await api.patch(`/rentals/${r._id}/cancel`);
+                        await api.patch(`/rentals/cancel/${r._id}`);
                         alert("Rental cancelled.");
                         window.location.reload();
                       } catch (err) {
@@ -190,7 +187,7 @@ export default function MyRentals() {
                       const dailyRate = r.machineId?.rentPerHour || 0;
 
                       try {
-                        await api.patch(`/rentals/${r._id}/extend`, {
+                        await api.patch(`/rentals/extend/${r._id}`, {
                           extraDays: Number(extraDays),
                           dailyRate,
                         });

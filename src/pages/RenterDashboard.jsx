@@ -40,11 +40,6 @@ export default function RenterDashboard() {
               My Rentals
             </button>
 
-            {/* Chat Support */}
-            <button className="nav-item" onClick={() => navigate("/chat")}>
-              Chat Support
-            </button>
-
             {/* ⭐ NEW: Renter Analytics */}
             <button className="nav-item" onClick={() => navigate("/renter-analytics")}>
               📊 Rental Analytics

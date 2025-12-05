@@ -1,28 +1,33 @@
+// routes/machineRoutes.js
 import express from "express";
 import {
+  upload,
   addMachine,
-  getMachineById,
   getMachines,
+  getMachinesByOwner,
+  getMachineById,
   deleteMachine,
   rateMachine,
-  upload
 } from "../controllers/machineController.js";
 
 const router = express.Router();
 
-// Add Machine
+// Add machine (with image upload)
 router.post("/", upload.single("image"), addMachine);
 
-// Get all machines
+// All machines (for Browse Machines)
 router.get("/", getMachines);
 
-// ⭐ Rate Machine
-router.post("/rate-machine/:machineId", rateMachine);
+// Machines for a specific owner (My Machines)
+router.get("/owner/:ownerId", getMachinesByOwner);
 
-// Delete Machine
+// Single machine by id
+router.get("/:id", getMachineById);
+
+// Delete machine
 router.delete("/:id", deleteMachine);
 
-// ⭐ KEEP THIS LAST — avoids route conflicts
-router.get("/:id", getMachineById);
+// Rate machine
+router.post("/rate-machine/:machineId", rateMachine);
 
 export default router;

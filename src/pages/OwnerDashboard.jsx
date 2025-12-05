@@ -16,7 +16,9 @@ export default function OwnerDashboard() {
   const [pending, setPending] = useState([]);
   const [active, setActive] = useState([]);
 
-  // Load Pending
+  /* ============================
+     LOAD PENDING REQUESTS
+  ============================ */
   const loadPending = useCallback(async () => {
     if (!ownerId) return;
     try {
@@ -27,7 +29,9 @@ export default function OwnerDashboard() {
     }
   }, [ownerId]);
 
-  // Load Active Rentals
+  /* ============================
+     LOAD ACTIVE RENTALS
+  ============================ */
   const loadActive = useCallback(async () => {
     if (!ownerId) return;
     try {
@@ -43,12 +47,15 @@ export default function OwnerDashboard() {
     loadActive();
   }, [loadPending, loadActive]);
 
-  // Approve Rental
+  /* ============================
+     APPROVE REQUEST
+  ============================ */
   const approveRequest = async (id) => {
     try {
       await api.patch(`/rentals/${id}/status`, { status: "active" });
-      setPending((prev) => prev.filter((p) => p._id !== id));
-      loadActive();
+
+      setPending((prev) => prev.filter((p) => p._id !== id)); // remove from pending
+      loadActive(); // refresh active
       alert("Approved successfully");
     } catch (err) {
       console.error(err);
@@ -56,10 +63,13 @@ export default function OwnerDashboard() {
     }
   };
 
-  // Deny Rental
+  /* ============================
+     DENY REQUEST
+  ============================ */
   const denyRequest = async (id) => {
     try {
       await api.patch(`/rentals/${id}/status`, { status: "cancelled" });
+
       setPending((prev) => prev.filter((p) => p._id !== id));
       alert("Request denied");
     } catch (err) {
@@ -68,20 +78,27 @@ export default function OwnerDashboard() {
     }
   };
 
-  // Complete Rental
+  /* ============================
+     COMPLETE RENTAL (FIXED)
+     Matches backend:
+     PATCH /api/rentals/complete/:id
+  ============================ */
   const completeRental = async (id) => {
     if (!window.confirm("Mark this rental as completed?")) return;
 
     try {
-      await api.patch(`/rentals/${id}/complete`);
+      await api.patch(`/rentals/complete/${id}`); // ✔ correct route
       alert("Rental marked as completed");
-      loadActive();
+      loadActive(); // refresh active rentals
     } catch (err) {
       console.error(err);
       alert("Failed to mark as completed");
     }
   };
 
+  /* ============================
+     LOGOUT
+  ============================ */
   const logout = () => {
     localStorage.clear();
     window.location.href = "/welcome";
@@ -97,35 +114,15 @@ export default function OwnerDashboard() {
           </h2>
 
           <nav className="sidebar-menu">
-            {/* home link now has real href */}
             <a href="/owner-dashboard" className="nav-item active">
               <FaTachometerAlt /> Dashboard
             </a>
-
             <a href="/my-machines" className="nav-item">
               <FaTractor /> My Machines
             </a>
-
             <a href="/earnings" className="nav-item">
               <FaMoneyBillWave /> Earnings
             </a>
-
-            <a href="/analytics" className="nav-item">
-              📊 Analytics
-            </a>
-
-            {/* turned into button instead of invalid href="#" */}
-            <button className="nav-item" type="button">
-              Map
-            </button>
-
-            <button
-              className="nav-item"
-              type="button"
-              onClick={() => (window.location.href = "/chat")}
-            >
-              Chat Support
-            </button>
           </nav>
         </div>
 
@@ -164,8 +161,9 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
+        {/* Requests + Rentals */}
         <div className="data-section">
-          {/* Pending Requests */}
+          {/* Pending */}
           <div className="data-card">
             <h2 className="pending-title">
               Pending Requests ({pending.length})
@@ -201,40 +199,42 @@ export default function OwnerDashboard() {
             )}
           </div>
 
-          {/* Active Rentals */}
+          {/* Active */}
           <div className="data-card">
             <h2>Active Rentals ({active.length})</h2>
 
-            {active.length === 0 && <p>No active rentals yet.</p>}
+            {active.length === 0 ? (
+              <p>No active rentals yet.</p>
+            ) : (
+              active.map((r) => (
+                <div key={r._id} className="rental-row">
+                  <b>{r.machineId?.name}</b> ({r.renterId?.name}) — Due:{" "}
+                  <span className="due">
+                    {new Date(r.endTime).toLocaleDateString()}
+                  </span>
 
-            {active.map((r) => (
-              <div key={r._id} className="rental-row">
-                <b>{r.machineId?.name}</b> ({r.renterId?.name}) — Due:{" "}
-                <span className="due">
-                  {new Date(r.endTime).toLocaleDateString()}
-                </span>
+                  <button
+                    className="btn chat-btn"
+                    type="button"
+                    onClick={() =>
+                      (window.location.href = `/chat?rentalId=${r._id}&otherId=${r.renterId._id}&otherName=${encodeURIComponent(
+                        r.renterId.name
+                      )}&otherRole=renter`)
+                    }
+                  >
+                    Chat
+                  </button>
 
-                <button
-                  className="btn chat-btn"
-                  type="button"
-                  onClick={() =>
-                    (window.location.href = `/chat?rentalId=${r._id}&otherId=${r.renterId._id}&otherName=${encodeURIComponent(
-                      r.renterId.name
-                    )}&otherRole=renter`)
-                  }
-                >
-                  Chat
-                </button>
-
-                <button
-                  className="btn complete-btn"
-                  type="button"
-                  onClick={() => completeRental(r._id)}
-                >
-                  Mark Completed
-                </button>
-              </div>
-            ))}
+                  <button
+                    className="btn complete-btn"
+                    type="button"
+                    onClick={() => completeRental(r._id)}
+                  >
+                    Mark Completed
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </main>

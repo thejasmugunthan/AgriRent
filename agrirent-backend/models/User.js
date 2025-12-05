@@ -2,14 +2,19 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    passwordHash: { type: String, required: true },
+    name: String,
+    email: { type: String, unique: true },
+    password: String,
     role: { type: String, enum: ["owner", "renter"], default: "renter" },
 
-    rentals: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Rental" }
-    ]
+    phone: String,
+    address: String,
+    pincode: String,
+    district: String,
+    state: String,
+
+    photo: { type: String, default: "" }, // ⭐ NEW
+    rentals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Rental" }],
   },
   { timestamps: true }
 );

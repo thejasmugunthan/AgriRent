@@ -1,64 +1,77 @@
 import React, { useState } from "react";
-import axios from "axios";
-import "../css/Login.css";
+import api from "../api";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const nav = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
-      });
+      const res = await api.post("/auth/login", { email, password });
 
-      // Backend returns: { success, token, user: { _id, name, role } }
-      const { token, user } = res.data;
+      if (!res.data?.success) {
+        alert(res.data?.message || "Login failed");
+        return;
+      }
 
-      localStorage.setItem("token", token);
+      const user = res.data?.user;
+      if (!user) {
+        alert("Login error: No user data received");
+        return;
+      }
+
+      const userId = user._id;
+      if (!userId) {
+        alert("Login error: Missing userId");
+        return;
+      }
+
+      // ⭐ FIX: Save full user object for Booking.jsx
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("userId", user._id);
+
+      // Existing stored values
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", userId);
       localStorage.setItem("role", user.role);
 
-      alert("Login successful!");
-
-      // ROLE-BASED NAVIGATION
+      // Redirect
       if (user.role === "owner") {
-        window.location.href = "/owner-dashboard";
-      } else if (user.role === "renter") {
-        window.location.href = "/renter-dashboard";
+        nav("/owner-dashboard");
       } else {
-        window.location.href = "/";
+        nav("/renter-dashboard");
       }
 
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Login failed");
+      console.error("LOGIN ERROR:", err);
+      alert(err.response?.data?.message || "Login failed. Check backend.");
     }
   };
 
   return (
     <div className="login-page">
-      <form className="login-form" onSubmit={handleSubmit}>
-        <h2>Login</h2>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
 
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button type="submit">Login</button>
-      </form>
+      <button onClick={handleLogin}>Login</button>
     </div>
   );
 }

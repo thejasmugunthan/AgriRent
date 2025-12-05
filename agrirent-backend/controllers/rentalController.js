@@ -4,8 +4,15 @@ import User from "../models/User.js";
 import Machine from "../models/Machine.js";
 
 /* ============================================================
-   📌 CREATE RENTAL  (initial status = "pending")
-   - attaches ownerId from Machine
+   🔹 UTILITY: GET OWNER MACHINE IDS
+============================================================ */
+const getOwnerMachineIds = async (ownerId) => {
+  const machines = await Machine.find({ ownerId }).select("_id");
+  return machines.map((m) => m._id);
+};
+
+/* ============================================================
+   🔹 CREATE RENTAL  (status: pending)
 ============================================================ */
 export const createRental = async (req, res) => {
   try {
@@ -18,46 +25,91 @@ export const createRental = async (req, res) => {
       totalPrice,
     } = req.body;
 
-    if (!machineId || !renterId) {
-      return res
-        .status(400)
-        .json({ message: "Missing machineId or renterId" });
+    if (!machineId || !renterId || !startTime || !endTime) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Get machine in order to attach ownerId
     const machine = await Machine.findById(machineId);
     if (!machine) {
       return res.status(404).json({ message: "Machine not found" });
     }
 
+    if (String(machine.ownerId) === String(renterId)) {
+      return res.status(400).json({ message: "Owner cannot rent own machine" });
+    }
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (end <= start) {
+      return res.status(400).json({ message: "End time must be after start" });
+    }
+
+    // Overlap check (active + pending)
+    const overlap = await Rental.findOne({
+      machineId,
+      status: { $in: ["pending", "active"] },
+      startTime: { $lt: end },
+      endTime: { $gt: start },
+    });
+
+    if (overlap) {
+      return res
+        .status(400)
+        .json({ message: "Machine already booked for that time range" });
+    }
+
+    // Compute price (always server-side)
+    const diffMs = end - start;
+    const rawHours = diffMs / (1000 * 60 * 60);
+    const computedHours = Math.ceil(rawHours * 10) / 10;
+    const price = computedHours * (machine.rentPerHour || 0);
+
     const rental = new Rental({
       machineId,
       renterId,
-      ownerId: machine.ownerId, // ⭐ attach ownerId from machine
-      startTime,
-      endTime,
-      totalHours: Number(totalHours) || 0,
-      totalPrice: Number(totalPrice) || 0,
-      status: "pending", // waiting for owner approval
+      ownerId: machine.ownerId,
+      startTime: start,
+      endTime: end,
+      totalHours: totalHours || computedHours,
+      totalPrice: totalPrice || price,
+      status: "pending",
     });
 
     await rental.save();
 
-    // Link rental to renter user (optional but useful)
     await User.findByIdAndUpdate(renterId, {
       $push: { rentals: rental._id },
     });
 
     return res.json({ success: true, rental });
   } catch (err) {
-    console.error("BOOKING ERROR:", err);
+    console.error("CREATE RENTAL ERROR:", err);
     res.status(500).json({ message: "Booking failed", error: err.message });
   }
 };
 
 /* ============================================================
-   📌 MY RENTALS (Renter)
-   GET /api/rentals/my/:renterId
+   🔹 GET BOOKED SLOTS (ONLY active rentals block)
+============================================================ */
+export const getBookedSlots = async (req, res) => {
+  try {
+    const { machineId } = req.params;
+
+    const rentals = await Rental.find({
+      machineId,
+      status: "active",
+    }).select("startTime endTime status");
+
+    res.json({ success: true, slots: rentals });
+  } catch (err) {
+    console.error("BOOKED SLOTS ERROR:", err);
+    res.status(500).json({ message: "Failed to fetch booked slots" });
+  }
+};
+
+/* ============================================================
+   🔹 RENTER — GET MY RENTALS
 ============================================================ */
 export const getMyRentals = async (req, res) => {
   try {
@@ -68,48 +120,38 @@ export const getMyRentals = async (req, res) => {
       .populate("machineId", "name type image_url rentPerHour")
       .populate("ownerId", "name phone");
 
-    return res.json({ success: true, rentals });
+    res.json({ success: true, rentals });
   } catch (err) {
     console.error("GET MY RENTALS ERROR:", err);
-    res.status(500).json({ message: "Error fetching rentals" });
+    res.status(500).json({ message: "Failed to load rentals" });
   }
 };
 
-/* 
-  Optional alias used by some old routes.
-  If your rentalRoutes uses getRentalsForRenter, this keeps it working.
-*/
+/* ============================================================
+   🔹 BACKWARD COMPATIBILITY ROUTE (old apps)
+============================================================ */
 export const getRentalsForRenter = async (req, res) => {
   try {
-    const renterId = req.params.userId;   // FIXED
+    const renterId = req.params.userId;
 
     const rentals = await Rental.find({ renterId })
       .populate("machineId")
-      .populate("ownerId", "name phone"); // include phone for chat
+      .populate("ownerId", "name phone");
 
-    res.status(200).json({ success: true, rentals });
+    res.json({ success: true, rentals });
   } catch (err) {
-    console.error("Load renter rentals error:", err);
-    res.status(500).json({ error: "Failed to load rentals" });
+    console.error("OLD RENTER ROUTE ERROR:", err);
+    res.status(500).json({ message: "Failed to load rentals" });
   }
 };
 
-
 /* ============================================================
-   📌 HELPER — GET OWNER MACHINE IDs
-============================================================ */
-const getOwnerMachineIds = async (ownerId) => {
-  const machines = await Machine.find({ ownerId }).select("_id");
-  return machines.map((m) => m._id);
-};
-
-/* ============================================================
-   📌 OWNER — PENDING RENTALS
-   GET /api/rentals/owner/:ownerId/pending
+   🔹 OWNER — PENDING RENTALS
 ============================================================ */
 export const getOwnerPendingRentals = async (req, res) => {
   try {
     const { ownerId } = req.params;
+
     const machineIds = await getOwnerMachineIds(ownerId);
 
     const rentals = await Rental.find({
@@ -117,23 +159,23 @@ export const getOwnerPendingRentals = async (req, res) => {
       status: "pending",
     })
       .sort({ createdAt: -1 })
-      .populate("machineId")
-      .populate("renterId");
+      .populate("renterId")
+      .populate("machineId");
 
-    return res.json({ success: true, rentals });
+    res.json({ success: true, rentals });
   } catch (err) {
-    console.error("PENDING RENTALS ERROR:", err);
-    res.status(500).json({ message: "Error fetching pending rentals" });
+    console.error("OWNER PENDING ERROR:", err);
+    res.status(500).json({ message: "Failed to load pending rentals" });
   }
 };
 
 /* ============================================================
-   📌 OWNER — ACTIVE RENTALS
-   GET /api/rentals/owner/:ownerId/active
+   🔹 OWNER — ACTIVE RENTALS
 ============================================================ */
 export const getOwnerActiveRentals = async (req, res) => {
   try {
     const { ownerId } = req.params;
+
     const machineIds = await getOwnerMachineIds(ownerId);
 
     const rentals = await Rental.find({
@@ -141,19 +183,18 @@ export const getOwnerActiveRentals = async (req, res) => {
       status: "active",
     })
       .sort({ createdAt: -1 })
-      .populate("machineId")
-      .populate("renterId");
+      .populate("renterId")
+      .populate("machineId");
 
-    return res.json({ success: true, rentals });
+    res.json({ success: true, rentals });
   } catch (err) {
-    console.error("ACTIVE RENTALS ERROR:", err);
-    res.status(500).json({ message: "Error fetching active rentals" });
+    console.error("OWNER ACTIVE ERROR:", err);
+    res.status(500).json({ message: "Failed to load active rentals" });
   }
 };
 
 /* ============================================================
-   📌 UPDATE RENTAL STATUS (Approve / Complete / Cancel etc.)
-   PATCH /api/rentals/:rentalId/status
+   🔹 UPDATE RENTAL STATUS (approve / cancel / completed)
 ============================================================ */
 export const updateRentalStatus = async (req, res) => {
   try {
@@ -161,6 +202,7 @@ export const updateRentalStatus = async (req, res) => {
     const { status } = req.body;
 
     const allowed = ["pending", "active", "completed", "cancelled"];
+
     if (!allowed.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -171,16 +213,15 @@ export const updateRentalStatus = async (req, res) => {
       { new: true }
     );
 
-    return res.json({ success: true, rental });
+    res.json({ success: true, rental });
   } catch (err) {
-    console.error("UPDATE STATUS ERROR:", err);
-    res.status(500).json({ message: "Error updating status" });
+    console.error("STATUS UPDATE ERROR:", err);
+    res.status(500).json({ message: "Failed to update status" });
   }
 };
 
 /* ============================================================
-   📌 OWNER — MANUAL COMPLETION
-   PATCH /api/rentals/:id/complete
+   🔹 MARK RENTAL AS COMPLETED (Backend)
 ============================================================ */
 export const completeRental = async (req, res) => {
   try {
@@ -191,43 +232,74 @@ export const completeRental = async (req, res) => {
       return res.status(404).json({ message: "Rental not found" });
     }
 
+    if (rental.status !== "active") {
+      return res.status(400).json({ message: "Rental is not active" });
+    }
+
     rental.status = "completed";
     await rental.save();
-
-    // Mark machine available again
-    await Machine.findByIdAndUpdate(rental.machineId, { available: true });
 
     return res.json({ success: true, message: "Rental marked as completed" });
   } catch (err) {
     console.error("COMPLETE RENTAL ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Failed to complete rental" });
   }
 };
 
+
 /* ============================================================
-   📌 CANCEL RENTAL
-   PATCH /api/rentals/:rentalId/cancel
+   🔹 CANCEL RENTAL
 ============================================================ */
+// CANCEL RENTAL (STATUS → cancelled)
 export const cancelRental = async (req, res) => {
   try {
     const { rentalId } = req.params;
 
-    const rental = await Rental.findByIdAndUpdate(
-      rentalId,
-      { status: "cancelled" },
-      { new: true }
-    );
+    if (!rentalId) {
+      return res.status(400).json({
+        success: false,
+        message: "Rental ID is required",
+      });
+    }
 
-    return res.json({ success: true, rental });
+    const rental = await Rental.findById(rentalId);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: "Rental not found",
+      });
+    }
+
+    // Do not allow cancelling a completed rental
+    if (rental.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel a completed rental",
+      });
+    }
+
+    // Update the rental status
+    rental.status = "cancelled";
+    await rental.save();
+
+    return res.json({
+      success: true,
+      message: "Rental cancelled successfully",
+      rental,
+    });
+
   } catch (err) {
     console.error("CANCEL ERROR:", err);
-    res.status(500).json({ message: "Cancel failed" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel rental",
+    });
   }
 };
 
 /* ============================================================
-   📌 EXTEND RENTAL
-   PATCH /api/rentals/:rentalId/extend
+   🔹 EXTEND RENTAL
 ============================================================ */
 export const extendRental = async (req, res) => {
   try {
@@ -235,76 +307,63 @@ export const extendRental = async (req, res) => {
     const { extraDays, dailyRate } = req.body;
 
     const rental = await Rental.findById(rentalId);
-    if (!rental) {
-      return res.status(404).json({ message: "Rental not found" });
-    }
+    if (!rental) return res.status(404).json({ message: "Rental not found" });
 
     const days = Number(extraDays) || 0;
     const rate = Number(dailyRate) || 0;
 
-    const newEndDate = new Date(rental.endTime);
-    newEndDate.setDate(newEndDate.getDate() + days);
+    const newEnd = new Date(rental.endTime);
+    newEnd.setDate(newEnd.getDate() + days);
 
-    rental.endTime = newEndDate;
-    rental.totalPrice = Number(rental.totalPrice || 0) + rate * days;
+    rental.endTime = newEnd;
+    rental.totalPrice = Number(rental.totalPrice) + rate * days;
 
     await rental.save();
 
-    return res.json({ success: true, rental });
+    res.json({ success: true, rental });
   } catch (err) {
     console.error("EXTEND ERROR:", err);
-    res.status(500).json({ message: "Extend failed" });
+    res.status(500).json({ message: "Failed to extend" });
   }
 };
 
 /* ============================================================
-   📌 RATE MACHINE (Renter)
-   POST /api/rentals/rate/:machineId
+   🔹 RATE MACHINE
 ============================================================ */
 export const rateMachine = async (req, res) => {
   try {
     const { machineId } = req.params;
     const { renterId, rating, review } = req.body;
 
-    if (!rating) {
-      return res.status(400).json({ message: "Rating required" });
-    }
+    if (!rating) return res.status(400).json({ message: "Rating required" });
 
     const machine = await Machine.findById(machineId);
-    if (!machine) {
-      return res.status(404).json({ message: "Machine not found" });
-    }
+    if (!machine) return res.status(404).json({ message: "Machine not found" });
 
-    // Add rating
-    machine.ratings.push({
-      renterId,
-      rating,
-      review,
-    });
+    machine.ratings.push({ renterId, rating, review });
 
-    // Update average rating
     const avg =
-      machine.ratings.reduce((sum, r) => sum + Number(r.rating || 0), 0) /
+      machine.ratings.reduce((s, r) => s + Number(r.rating), 0) /
       machine.ratings.length;
 
     machine.averageRating = avg;
 
     await machine.save();
 
-    return res.json({ success: true, message: "Rating added", machine });
+    res.json({ success: true, message: "Rating submitted", machine });
   } catch (err) {
-    console.error("RATE MACHINE ERROR:", err);
-    res.status(500).json({ message: "Server error while rating" });
+    console.error("RATE ERROR:", err);
+    res.status(500).json({ message: "Failed to rate machine" });
   }
 };
 
 /* ============================================================
-   📌 OWNER ANALYTICS
-   GET /api/rentals/analytics/owner/:ownerId
+   🔹 OWNER ANALYTICS
 ============================================================ */
 export const getOwnerAnalytics = async (req, res) => {
   try {
     const { ownerId } = req.params;
+
     const machineIds = await getOwnerMachineIds(ownerId);
 
     const rentals = await Rental.find({
@@ -312,20 +371,17 @@ export const getOwnerAnalytics = async (req, res) => {
       status: "completed",
     }).populate("machineId");
 
-    const monthlyEarnings = {};
-    const monthlyRentals = {};
-    const machineTotals = {};
+    const earnings = {};
+    const counts = {};
+    const totals = {};
 
-    // init last 12 months
+    // init past 12 months
     for (let i = 0; i < 12; i++) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      const key = d.toLocaleString("default", {
-        month: "short",
-        year: "numeric",
-      });
-      monthlyEarnings[key] = 0;
-      monthlyRentals[key] = 0;
+      const key = d.toLocaleString("default", { month: "short", year: "numeric" });
+      earnings[key] = 0;
+      counts[key] = 0;
     }
 
     rentals.forEach((r) => {
@@ -334,45 +390,41 @@ export const getOwnerAnalytics = async (req, res) => {
         year: "numeric",
       });
 
-      if (monthlyEarnings[key] !== undefined) {
-        monthlyEarnings[key] += Number(r.totalPrice || 0);
-        monthlyRentals[key] += 1;
+      if (earnings[key] !== undefined) {
+        earnings[key] += Number(r.totalPrice);
+        counts[key] += 1;
       }
 
       const name = r.machineId?.name || "Unknown";
-      machineTotals[name] = (machineTotals[name] || 0) + Number(r.totalPrice || 0);
+      totals[name] = (totals[name] || 0) + Number(r.totalPrice);
     });
 
-    const topMachines = Object.entries(machineTotals)
+    const topMachines = Object.entries(totals)
       .map(([name, earnings]) => ({ name, earnings }))
       .sort((a, b) => b.earnings - a.earnings)
       .slice(0, 5);
 
-    return res.json({
+    res.json({
       success: true,
-      monthlyEarnings,
-      monthlyRentals,
+      monthlyEarnings: earnings,
+      monthlyRentals: counts,
       topMachines,
     });
   } catch (err) {
     console.error("OWNER ANALYTICS ERROR:", err);
-    res.status(500).json({ message: "Error fetching analytics" });
+    res.status(500).json({ message: "Failed to load analytics" });
   }
 };
 
-// =========================
-// OWNER EARNINGS SUMMARY
-// =========================
+/* ============================================================
+   🔹 OWNER EARNINGS
+============================================================ */
 export const getOwnerEarnings = async (req, res) => {
   try {
     const { ownerId } = req.params;
 
-    // Get all machines owned by this owner
-    const machines = await Machine.find({ ownerId }).select("_id");
+    const machineIds = await getOwnerMachineIds(ownerId);
 
-    const machineIds = machines.map((m) => m._id);
-
-    // Get all completed rentals for these machines
     const rentals = await Rental.find({
       machineId: { $in: machineIds },
       status: "completed",
@@ -382,24 +434,19 @@ export const getOwnerEarnings = async (req, res) => {
       .sort({ endTime: -1 });
 
     const totalEarnings = rentals.reduce(
-      (sum, r) => sum + Number(r.totalPrice || 0),
+      (sum, r) => sum + Number(r.totalPrice),
       0
     );
 
-    res.json({
-      success: true,
-      totalEarnings,
-      completedRentals: rentals,
-    });
+    res.json({ success: true, totalEarnings, completedRentals: rentals });
   } catch (err) {
     console.error("OWNER EARNINGS ERROR:", err);
-    res.status(500).json({ message: "Error fetching earnings" });
+    res.status(500).json({ message: "Failed to load earnings" });
   }
 };
 
 /* ============================================================
-   📌 RENTER ANALYTICS
-   GET /api/rentals/analytics/renter/:renterId
+   🔹 RENTER ANALYTICS
 ============================================================ */
 export const getRenterAnalytics = async (req, res) => {
   try {
@@ -413,14 +460,11 @@ export const getRenterAnalytics = async (req, res) => {
     const monthlySpending = {};
     const typeCount = {};
 
-    // init last 12 months
+    // init past 12 months
     for (let i = 0; i < 12; i++) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
-      const key = d.toLocaleString("default", {
-        month: "short",
-        year: "numeric",
-      });
+      const key = d.toLocaleString("default", { month: "short", year: "numeric" });
       monthlyRentals[key] = 0;
       monthlySpending[key] = 0;
     }
@@ -431,16 +475,14 @@ export const getRenterAnalytics = async (req, res) => {
         year: "numeric",
       });
 
-      if (monthlyRentals[key] !== undefined) {
-        monthlyRentals[key] += 1;
-        monthlySpending[key] += Number(r.totalPrice || 0);
-      }
+      monthlyRentals[key] += 1;
+      monthlySpending[key] += Number(r.totalPrice || 0);
 
       const type = r.machineId?.type || "Other";
       typeCount[type] = (typeCount[type] || 0) + 1;
     });
 
-    return res.json({
+    res.json({
       success: true,
       monthlyRentals,
       monthlySpending,
@@ -451,6 +493,6 @@ export const getRenterAnalytics = async (req, res) => {
     });
   } catch (err) {
     console.error("RENTER ANALYTICS ERROR:", err);
-    res.status(500).json({ message: "Analytics fetch failed" });
+    res.status(500).json({ message: "Failed to load analytics" });
   }
 };

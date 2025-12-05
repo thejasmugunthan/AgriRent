@@ -16,7 +16,7 @@ export default function BrowseMachines() {
   const [favorites, setFavorites] = useState([]);
   const [sortOrder, setSortOrder] = useState("asc");
 
-  const [ratingFilter, setRatingFilter] = useState("all"); // ⭐ NEW
+  const [ratingFilter, setRatingFilter] = useState("all");
 
   const [filter, setFilter] = useState({
     location: "",
@@ -26,7 +26,7 @@ export default function BrowseMachines() {
     maxPrice: "",
   });
 
-  // 🔥 PINCODE → LOCATION MAP
+  // 📌 PINCODE → LOCATION MAP
   const PINCODE_MAP = {
     "560001": "Bangalore",
     "570001": "Mysuru",
@@ -34,22 +34,27 @@ export default function BrowseMachines() {
     "573201": "Hassan",
   };
 
-  // ✅ FETCH ALL MACHINES
+  // ✅ FETCH ALL MACHINES SAFELY
   useEffect(() => {
     const loadMachines = async () => {
       try {
         const { data } = await api.get("/machines");
 
-        const mappedMachines = data.map((m) => ({
+        // SAFE FIX (VERY IMPORTANT)
+        const machineArray = Array.isArray(data)
+          ? data // backend returned raw array
+          : data.machines || []; // backend returned { machines: [...] }
+
+        const mappedMachines = machineArray.map((m) => ({
           id: m._id,
           name: m.name,
           type: m.type?.trim() || "Machine",
           rentPerHour: m.rentPerHour || 0,
           location: PINCODE_MAP[m.pincode] || "Unknown",
-          available: m.available,
+          available: m.available !== undefined ? m.available : true,
           image: m.image_url || "",
           averageRating: m.averageRating || 0,
-          reviewsCount: m.ratings?.length || 0,
+          reviewsCount: Array.isArray(m.ratings) ? m.ratings.length : 0,
         }));
 
         setMachines(mappedMachines);
@@ -62,31 +67,34 @@ export default function BrowseMachines() {
     loadMachines();
   }, []);
 
-  // ⭐ APPLY FILTERS + SORT + RATING FILTER
+  // ⭐ APPLY FILTERS + SORT + RATING
   const filteredMachines = machines
-    .filter((m) =>
-      (filter.location === "" || m.location === filter.location) &&
-      (filter.type === "" ||
-        m.type.toLowerCase().trim() === filter.type.toLowerCase().trim()) &&
-      (filter.availability === "" ||
-        (filter.availability === "Available" && m.available) ||
-        (filter.availability === "Booked" && !m.available)) &&
-      (filter.minPrice === "" || m.rentPerHour >= Number(filter.minPrice)) &&
-      (filter.maxPrice === "" || m.rentPerHour <= Number(filter.maxPrice))
-    )
-    // ⭐ STAR FILTER (1–5 stars)
+    .filter((m) => {
+      return (
+        (filter.location === "" || m.location === filter.location) &&
+        (filter.type === "" ||
+          m.type.toLowerCase().trim() ===
+            filter.type.toLowerCase().trim()) &&
+        (filter.availability === "" ||
+          (filter.availability === "Available" && m.available) ||
+          (filter.availability === "Booked" && !m.available)) &&
+        (filter.minPrice === "" ||
+          m.rentPerHour >= Number(filter.minPrice)) &&
+        (filter.maxPrice === "" ||
+          m.rentPerHour <= Number(filter.maxPrice))
+      );
+    })
     .filter((m) => {
       if (ratingFilter === "all") return true;
       return m.averageRating >= Number(ratingFilter);
     })
-    // ⭐ SORT BY PRICE
     .sort((a, b) =>
       sortOrder === "asc"
         ? a.rentPerHour - b.rentPerHour
         : b.rentPerHour - a.rentPerHour
     );
 
-  // ❤️ Favorite toggle
+  // ❤️ FAVORITES
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
       prev.includes(id)
@@ -97,7 +105,6 @@ export default function BrowseMachines() {
 
   return (
     <div className="dashboard-container">
-      
       {/* LEFT SIDEBAR */}
       <aside className="flat-sidebar">
         <div className="sidebar-top">
@@ -142,7 +149,7 @@ export default function BrowseMachines() {
           {/* FILTER SECTION */}
           <div className="filter-section">
 
-            {/* LOCATION */}
+            {/* LOCATION FILTER */}
             <select
               value={filter.location}
               onChange={(e) =>
@@ -156,7 +163,7 @@ export default function BrowseMachines() {
               <option value="Hassan">Hassan</option>
             </select>
 
-            {/* TYPE */}
+            {/* TYPE FILTER */}
             <select
               value={filter.type}
               onChange={(e) =>
@@ -183,7 +190,7 @@ export default function BrowseMachines() {
               <option value="Booked">Booked</option>
             </select>
 
-            {/* PRICE */}
+            {/* PRICE FILTER */}
             <input
               type="number"
               placeholder="Min ₹/hour"
@@ -202,7 +209,7 @@ export default function BrowseMachines() {
               }
             />
 
-            {/* ⭐ STAR FILTER */}
+            {/* ⭐ RATING FILTER */}
             <select
               className="rating-filter-select"
               value={ratingFilter}

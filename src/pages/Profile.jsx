@@ -1,133 +1,122 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import api from "../api";
 import "../css/Profile.css";
-import defaultAvatar from "../assets/default-avatar.png";
 
 export default function Profile() {
-  const [profile, setProfile] = useState({
-    name: "Ramesh Gowda",
-    email: "rameshgowda@gmail.com",
-    phone: "+91 9876543210",
-    address: "Mysuru, Karnataka",
-    farm: "GreenField Rentals",
-    experience: "5 Years",
-    photo: defaultAvatar,
+  const userId = localStorage.getItem("userId");
+
+  const [user, setUser] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [error, setError] = useState("");
+
+  const [stats, setStats] = useState({
+    machines: 0,
+    earnings: 0,
   });
 
-  const [isEditing, setIsEditing] = useState(false);
+  useEffect(() => {
+    loadProfile();
+    loadStats();
+  }, []);
 
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setProfile({ ...profile, photo: reader.result });
-      reader.readAsDataURL(file);
+  const loadProfile = async () => {
+    try {
+      const res = await api.get(`/auth/profile/${userId}`);
+      setUser(res.data.user);
+      setPhotoPreview(res.data.user.photo);
+    } catch {
+      setError("Failed to load profile");
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
+  const loadStats = async () => {
+    try {
+      const res = await api.get(`/rentals/owner/${userId}/earnings`);
+      setStats({
+        machines: res.data.completedRentals.length || 0,
+        earnings: res.data.totalEarnings || 0,
+      });
+    } catch {}
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const form = new FormData();
+    form.append("photo", file);
+
+    const res = await api.post("/upload/profile", form);
+    setPhotoPreview(res.data.fileUrl);
+
+    await api.put(`/auth/profile/${userId}`, {
+      photo: res.data.fileUrl,
+    });
+
+    loadProfile();
+  };
+
+  const updateField = (key, value) => {
+    setUser((u) => ({ ...u, [key]: value }));
+  };
+
+  const saveProfile = async () => {
+    await api.put(`/auth/profile/${userId}`, user);
     alert("Profile updated successfully!");
   };
 
+  if (!user) return <div className="loading">Loading...</div>;
+
   return (
-    <div className="profile-container">
-      <h1>My Profile 👨‍🌾</h1>
-      <p className="sub">Manage and update your profile information below.</p>
+    <div className="profile-container fade-in">
+      <div className="profile-header">
+        <div className="avatar-wrap">
+          <img
+            src={photoPreview || "/default-avatar.png"}
+            className="avatar"
+            alt="Profile"
+          />
 
-      <div className="profile-card">
-        <div className="profile-photo-section">
-          <img src={profile.photo} alt="Profile" className="profile-photo" />
-          {isEditing && (
-            <label className="upload-btn">
-              Change Photo
-              <input type="file" accept="image/*" onChange={handlePhotoChange} hidden />
-            </label>
-          )}
+          <label className="upload-btn">
+            Upload Photo
+            <input type="file" onChange={handlePhotoUpload} hidden />
+          </label>
         </div>
 
-        <div className="profile-details">
-          <div className="form-group">
-            <label>Name:</label>
-            <input
-              type="text"
-              name="name"
-              value={profile.name}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={profile.email}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Phone:</label>
-            <input
-              type="text"
-              name="phone"
-              value={profile.phone}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Address:</label>
-            <input
-              type="text"
-              name="address"
-              value={profile.address}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Farm / Company Name:</label>
-            <input
-              type="text"
-              name="farm"
-              value={profile.farm}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Experience:</label>
-            <input
-              type="text"
-              name="experience"
-              value={profile.experience}
-              disabled={!isEditing}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
+        <div className="profile-role">{user.role?.toUpperCase()}</div>
       </div>
 
-      <div className="profile-actions">
-        {!isEditing ? (
-          <button className="edit-btn" onClick={() => setIsEditing(true)}>
-            Edit Profile
-          </button>
-        ) : (
-          <button className="save-btn" onClick={handleSave}>
-            Save Changes
-          </button>
-        )}
+      {error && <p className="error-box">{error}</p>}
+
+      {/* Stats Box */}
+
+
+      {/* Form */}
+      <div className="profile-form">
+        <label>Name</label>
+        <input value={user.name} onChange={(e) => updateField("name", e.target.value)} />
+
+        <label>Email (read only)</label>
+        <input value={user.email} disabled />
+
+        <label>Phone</label>
+        <input value={user.phone || ""} onChange={(e) => updateField("phone", e.target.value)} />
+
+        <label>Address</label>
+        <input value={user.address || ""} onChange={(e) => updateField("address", e.target.value)} />
+
+        <label>Pincode</label>
+        <input value={user.pincode || ""} onChange={(e) => updateField("pincode", e.target.value)} />
+
+        <label>District</label>
+        <input value={user.district || ""} onChange={(e) => updateField("district", e.target.value)} />
+
+        <label>State</label>
+        <input value={user.state || ""} onChange={(e) => updateField("state", e.target.value)} />
+
+        <button className="save-btn" onClick={saveProfile}>
+          Save Profile
+        </button>
       </div>
     </div>
   );

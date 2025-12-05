@@ -1,164 +1,84 @@
-/* ------------------------------
-   CONTAINER
---------------------------------*/
-.booking-container {
-  max-width: 700px;
-  margin: auto;
-  padding: 20px;
-  background: #f5f7fa;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
+/* PAGE */
+.booking-page {
+  padding: 20px 6vw;
+  background: #f5f7fb;
 }
 
-/* Back Button */
-.back-btn {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: #1e3d26;
-  margin-bottom: 10px;
-}
-
-.back-btn:hover {
-  text-decoration: underline;
-}
-
-/* ------------------------------
-   HEADINGS
---------------------------------*/
-h1 {
-  font-size: 32px;
-  color: #064420;
-  margin-bottom: 10px;
-}
-
-.rate {
-  font-size: 20px;
-  color: #0d6a34;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-/* ------------------------------
-   MACHINE DETAILS CARD
---------------------------------*/
-.machine-card {
-  display: flex;
+/* GRID */
+.booking-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 20px;
-  padding: 20px;
-  background: #ecf9ec;
-  border-radius: 12px;
-  margin-bottom: 25px;
-  align-items: center;
 }
 
-.machine-img {
-  width: 140px;
-  height: 110px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 2px solid #c8e6c9;
-}
-
-.details h3 {
-  margin: 0;
-  font-size: 20px;
-  color: #064420;
-}
-
-.details p {
-  margin: 4px 0;
-  color: #3d5631;
-  font-size: 15px;
-}
-
-/* ------------------------------
-   DATE-TIME SECTION
---------------------------------*/
-.date-section {
-  margin-bottom: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.date-section label {
-  font-weight: bold;
-  color: #064420;
-}
-
-input[type="datetime-local"] {
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #c8e6c9;
-  border-radius: 10px;
-  outline: none;
-  width: 100%;
-  background: white;
-}
-
-input[type="datetime-local"]:focus {
-  border-color: #0d6a34;
-}
-
-/* ------------------------------
-   PRICE CARD
---------------------------------*/
+/* CARDS */
+.calendar-card,
+.time-card,
 .price-card {
-  background: #e9fbe9;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  border: 2px solid #c8e6c9;
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
-.price-card p {
-  font-size: 16px;
-  color: #064420;
-  margin-bottom: 6px;
+/* HOUR GRID */
+.hour-grid-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
 }
 
-.price-card h2 {
-  margin-top: 15px;
-  font-size: 24px;
-  color: #064420;
-  font-weight: bold;
+.hour-slot {
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  transition: 0.2s;
 }
 
-/* ------------------------------
-   CONFIRM BUTTON
---------------------------------*/
+.hour-slot.free {
+  background: #e5e7eb;
+}
+.hour-slot.free:hover {
+  background: #dbeafe;
+  cursor: pointer;
+}
+
+.hour-slot.booked {
+  background: #fecaca;
+  color: #7f1d1d;
+  cursor: not-allowed;
+}
+
+.hour-slot.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* INPUTS */
+.blocked {
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+}
+
+/* BUTTON */
 .confirm-btn {
   width: 100%;
-  padding: 15px;
-  background: #0d6a34;
-  color: white;
-  font-size: 20px;
+  padding: 10px;
+  border-radius: 10px;
   border: none;
-  border-radius: 12px;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
   cursor: pointer;
-  margin-top: 10px;
-  font-weight: bold;
-  transition: 0.3s ease;
+  transition: 0.2s;
 }
 
-.confirm-btn:hover {
-  background: #095427;
+.confirm-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
 }
 
-/* ------------------------------
-   RESPONSIVE
---------------------------------*/
-@media (max-width: 600px) {
-  .machine-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .machine-img {
-    width: 100%;
-    height: 160px;
-  }
+.confirm-btn:disabled {
+  opacity: 0.6;
 }
