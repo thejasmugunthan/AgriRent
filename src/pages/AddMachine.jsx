@@ -3,21 +3,27 @@ import { addMachine, predictPrice } from "../api/machineApi";
 import "../css/AddMachine.css";
 
 export default function AddMachine() {
-  const userId = localStorage.getItem("userId"); // ✔ FIXED
+  const userId = localStorage.getItem("userId");
+
+  const MACHINE_TYPES = ["Tractor", "Harvester", "Rotavator", "Cultivator"];
+  const HORSEPOWER_OPTIONS = [
+    20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 75, 80, 90, 100,
+  ];
+
   const [form, setForm] = useState({
     name: "",
-    type: "",
+    machine_type: "",
     horsepower: "",
-    ageYears: "",
-    hoursUsed: "",
+    age_years: "",
+    hours_used: "",
     pincode: "",
     maintenance_cost: "",
-    fuel_price: 95,
   });
 
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [predictedPrice, setPredictedPrice] = useState(null);
+  const [dieselPrice, setDieselPrice] = useState(95);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
@@ -29,53 +35,63 @@ export default function AddMachine() {
     if (f) setPreview(URL.createObjectURL(f));
   };
 
-  /* =======================================================
-     ⭐ ML Prediction (FastAPI)
-  ======================================================= */
+  /* =====================================================
+        ⭐ GET LIVE DIESEL PRICE
+  ====================================================== */
+  const fetchDieselPrice = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/get_diesel");
+      const data = await res.json();
+      setDieselPrice(data.diesel_price);
+      return data.diesel_price;
+    } catch (err) {
+      console.error("Diesel API failed:", err);
+      return 95; // fallback value
+    }
+  };
+
+  /* =====================================================
+        ⭐ ML – Predict Price FastAPI
+  ====================================================== */
   const handlePredict = async () => {
-    if (!form.pincode || !form.type || !form.horsepower)
-      return alert("Fill pincode, type, horsepower first");
+    if (!form.pincode || !form.machine_type || !form.horsepower)
+      return alert("Select machine type, horsepower and enter pincode");
 
     setLoading(true);
 
-    const payload = {
-      pincode: form.pincode,
-      machine_type: form.type.toUpperCase(), // ✔ FIXED
-      horsepower: Number(form.horsepower),
-      hours_used: Number(form.hoursUsed || 0),
-      age_years: Number(form.ageYears || 0),
-      maintenance_cost: Number(form.maintenance_cost || 0),
-      fuel_price: Number(form.fuel_price || 95),
-
-      // ML context fields
-      created_at: new Date().toISOString(),
-      bookings_7d: 0,
-      cancellations_7d: 0,
-      stock_on_hand: 1,
-      duration_days: 1,
-      advance_days: 0,
-      hours_per_day: 1,
-    };
-
     try {
-      const res = await predictPrice(payload); // ✔ FIXED route
-      const price =
-        res.data?.predicted_rental_price ?? res.data?.price ?? null;
+      // 1) fetch diesel price first
+      const liveDiesel = await fetchDieselPrice();
 
-      if (price === null) throw new Error("Invalid ML Response");
+      // 2) build ML payload
+      const payload = {
+        machine_type: form.machine_type,
+        horsepower: Number(form.horsepower),
+        age_years: Number(form.age_years || 0),
+        hours_used: Number(form.hours_used || 0),
+        pincode: form.pincode,
+        maintenance_cost: Number(form.maintenance_cost || 0),
+        fuel_price: liveDiesel,
+      };
+
+      // 3) call ML API
+      const res = await predictPrice(payload);
+
+      const price = res.data?.price || res.data?.predicted_rental_price;
+      if (!price) throw new Error("ML returned invalid response");
 
       setPredictedPrice(Number(price).toFixed(2));
     } catch (err) {
       console.error("PREDICT ERROR:", err);
-      alert("Price prediction failed. Check console.");
+      alert("Prediction failed. Check console.");
     } finally {
       setLoading(false);
     }
   };
 
-  /* =======================================================
-     ⭐ Save Machine to Backend
-  ======================================================= */
+  /* =====================================================
+      ⭐ SAVE MACHINE (to Node Backend)
+  ====================================================== */
   const handleSave = async () => {
     if (!userId) return alert("User not logged in!");
     if (!predictedPrice) return alert("Predict price first!");
@@ -83,14 +99,14 @@ export default function AddMachine() {
     const fd = new FormData();
     fd.append("ownerId", userId);
     fd.append("name", form.name);
-    fd.append("type", form.type);
+    fd.append("type", form.machine_type);
     fd.append("horsepower", form.horsepower);
-    fd.append("ageYears", form.ageYears);
-    fd.append("hoursUsed", form.hoursUsed);
+    fd.append("ageYears", form.age_years);
+    fd.append("hoursUsed", form.hours_used);
     fd.append("pincode", form.pincode);
-    fd.append("maintenance_cost", form.maintenance_cost || 0);
-    fd.append("fuel_price", form.fuel_price || 95);
-    fd.append("rentPerHour", predictedPrice); // ✔ FIXED
+    fd.append("maintenance_cost", form.maintenance_cost);
+    fd.append("fuel_price", dieselPrice);
+    fd.append("rentPerHour", predictedPrice);
 
     if (file) fd.append("image", file);
 
@@ -109,64 +125,72 @@ export default function AddMachine() {
       <h2>Add New Machine</h2>
 
       <div className="form-card">
-        {/* NAME + TYPE */}
-        <div className="grid-2">
-          <input
-            name="name"
-            placeholder="Machine Name"
-            onChange={handleChange}
-          />
-          <input
-            name="type"
-            placeholder="Type (Tractor / Harvester)"
-            onChange={handleChange}
-          />
-        </div>
 
-        {/* HP + AGE */}
-        <div className="grid-2">
-          <input
-            name="horsepower"
-            placeholder="Horsepower (HP)"
-            onChange={handleChange}
-          />
-          <input
-            name="ageYears"
-            placeholder="Age (Years)"
-            onChange={handleChange}
-          />
-        </div>
-
-        {/* Hours Used */}
+        {/* NAME */}
         <input
-          name="hoursUsed"
-          placeholder="Hours Used"
+          name="name"
+          placeholder="Machine Name"
           onChange={handleChange}
         />
 
-        {/* Pincode */}
+        {/* MACHINE TYPE */}
+        <select
+          name="machine_type"
+          onChange={handleChange}
+          value={form.machine_type}
+        >
+          <option value="">Select Machine Type</option>
+          {MACHINE_TYPES.map((type) => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+
+        {/* HORSEPOWER */}
+        <select
+          name="horsepower"
+          onChange={handleChange}
+          value={form.horsepower}
+        >
+          <option value="">Select Horsepower</option>
+          {HORSEPOWER_OPTIONS.map((hp) => (
+            <option key={hp} value={hp}>{hp} HP</option>
+          ))}
+        </select>
+
+        {/* AGE + HOURS */}
+        <div className="grid-2">
+          <input
+            name="age_years"
+            placeholder="Age (Years)"
+            onChange={handleChange}
+          />
+          <input
+            name="hours_used"
+            placeholder="Hours Used"
+            onChange={handleChange}
+          />
+        </div>
+
+        {/* PINCODE */}
         <input
           name="pincode"
           placeholder="Pincode"
           onChange={handleChange}
         />
 
-        {/* Maintenance + Fuel */}
-        <div className="grid-2">
-          <input
-            name="maintenance_cost"
-            placeholder="Maintenance Cost"
-            onChange={handleChange}
-          />
-          <input
-            name="fuel_price"
-            placeholder="Fuel Price"
-            value={form.fuel_price}
-            onChange={handleChange}
-          />
-        </div>
+        {/* MAINTENANCE ONLY */}
+        <input
+          name="maintenance_cost"
+          placeholder="Maintenance Cost"
+          onChange={handleChange}
+        />
 
-        {/* Image */}
+        {/* SHOW LIVE DIESEL PRICE */}
+        <p style={{ fontWeight: 600, marginTop: 10 }}>
+          Diesel Price (Auto): ₹ {dieselPrice}
+        </p>
+
+        {/* IMAGE UPLOAD */}
         <input type="file" onChange={handleFile} />
         {preview && (
           <img
@@ -176,12 +200,12 @@ export default function AddMachine() {
           />
         )}
 
-        {/* Predict */}
+        {/* PREDICT BUTTON */}
         <button className="predict-btn" onClick={handlePredict} disabled={loading}>
           {loading ? "Predicting..." : "🔮 Predict Price"}
         </button>
 
-        {/* Prediction Output */}
+        {/* PREDICTION RESULT */}
         {predictedPrice && (
           <div className="prediction-box">
             <p>Predicted Hourly Price:</p>
@@ -192,6 +216,7 @@ export default function AddMachine() {
             </button>
           </div>
         )}
+
       </div>
     </div>
   );
