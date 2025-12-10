@@ -154,9 +154,10 @@ export default function PricePredictor() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Content - Single Column on Mobile, Two Columns on Desktop */}
+        <div className="grid lg:grid-cols-2 gap-6 items-start">
           {/* Left - Form */}
-          <div className="lg:col-span-2">
+          <div className="w-full">
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <FaTractor className="text-green-600" /> Enter Details
@@ -270,85 +271,120 @@ export default function PricePredictor() {
           </div>
 
           {/* Right - Results */}
-          <div className="space-y-6">
-            {/* Weather & Crop Insights */}
-            {(weather || cropInfo) && (
-              <div className="bg-white rounded-xl shadow-md p-6">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">
-                  <FaCloudSun className="inline text-green-600 mr-2" />
-                  Insights
-                </h3>
-
-                {weather && (
-                  <div className="mb-4 pb-4 border-b border-gray-200">
-                    <p className="font-semibold text-gray-700 mb-2">Location Data</p>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>Temperature: <span className="font-medium">{weather.temp}°C</span></p>
-                      <p>Humidity: <span className="font-medium">{weather.humidity}%</span></p>
-                      <p>Rainfall: <span className="font-medium">{weather.rain} mm</span></p>
-                      {dieselPrice != null && (
-                        <p>Diesel Price: <span className="font-medium">₹{Number(dieselPrice).toFixed(2)}</span></p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {cropInfo && (
-                  <div>
-                    <p className="font-semibold text-gray-700 mb-2">
-                      <FaSeedling className="inline text-green-600 mr-1" />
-                      Crop Intelligence
-                    </p>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>{cropInfo.notes}</p>
-                      {cropInfo.recommendedMachines && (
-                        <p className="mt-2">
-                          <span className="font-medium">Recommended:</span>{" "}
-                          {cropInfo.recommendedMachines.join(", ")}
-                        </p>
-                      )}
-                      {demandIndex != null && (
-                        <p>
-                          <span className="font-medium">Demand Index:</span> {demandIndex}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Price Result */}
-            {price != null && (
-              <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
-                <h3 className="text-lg font-semibold mb-3">Predicted Price</h3>
-
-                <div className="flex items-center gap-2 mb-4">
-                  <FaRupeeSign className="text-3xl" />
-                  <span className="text-5xl font-bold">{Number(price).toFixed(2)}</span>
-                  <span className="text-green-100 text-lg">/hour</span>
+          <div className="w-full lg:sticky lg:top-6">
+            <div className="space-y-6">
+              {/* Empty State - Show when no results */}
+              {!weather && !cropInfo && !price && !error && (
+                <div className="bg-white rounded-xl shadow-md p-8 text-center">
+                  <FaCalculator className="text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">Ready to Predict</h3>
+                  <p className="text-gray-600">
+                    Fill in the details and click "Predict Price" to get your rental price estimate
+                  </p>
                 </div>
+              )}
 
-                {mlBasePrice != null && (
-                  <div className="text-sm text-green-100 space-y-1 border-t border-green-400 pt-3">
-                    <p>Base ML Price: ₹{mlBasePrice.toFixed(2)}</p>
-                    {demandIndex != null && (
-                      <p>Demand Factor: {demandIndex}</p>
-                    )}
+              {/* Weather & Crop Insights */}
+              {(weather || cropInfo) && (
+                <div className="bg-white rounded-xl shadow-md p-6">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <FaCloudSun className="text-green-600" />
+                    Insights
+                  </h3>
+
+                  {weather && (
+                    <div className={`${cropInfo ? 'mb-4 pb-4 border-b border-gray-200' : ''}`}>
+                      <p className="font-semibold text-gray-700 mb-3">Location Data</p>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex justify-between">
+                          <span>Temperature:</span>
+                          <span className="font-medium text-gray-800">{weather.temp}°C</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Humidity:</span>
+                          <span className="font-medium text-gray-800">{weather.humidity}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Rainfall:</span>
+                          <span className="font-medium text-gray-800">{weather.rain} mm</span>
+                        </div>
+                        {dieselPrice != null && (
+                          <div className="flex justify-between">
+                            <span>Diesel Price:</span>
+                            <span className="font-medium text-gray-800">₹{Number(dieselPrice).toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {cropInfo && (
+                    <div>
+                      <p className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <FaSeedling className="text-green-600" />
+                        Crop Intelligence
+                      </p>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <p className="leading-relaxed">{cropInfo.notes}</p>
+                        {cropInfo.recommendedMachines && (
+                          <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                            <p className="font-medium text-gray-800 mb-1">Recommended Machines:</p>
+                            <p className="text-green-700">{cropInfo.recommendedMachines.join(", ")}</p>
+                          </div>
+                        )}
+                        {demandIndex != null && (
+                          <div className="flex justify-between mt-2">
+                            <span className="font-medium">Demand Index:</span>
+                            <span className="font-bold text-gray-800">{demandIndex}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Price Result */}
+              {price != null && (
+                <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+                  <h3 className="text-lg font-semibold mb-4">Predicted Price</h3>
+
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <FaRupeeSign className="text-3xl" />
+                    <span className="text-5xl font-bold">{Number(price).toFixed(2)}</span>
+                    <span className="text-green-100 text-xl">/hour</span>
                   </div>
-                )}
 
-                <p className="text-xs text-green-50 mt-4">
-                  Price calculated using weather conditions, crop demand, diesel prices & local market trends
-                </p>
-              </div>
-            )}
+                  {mlBasePrice != null && (
+                    <div className="text-sm text-green-100 space-y-1 border-t border-green-400 pt-3 mt-3">
+                      <div className="flex justify-between">
+                        <span>Base ML Price:</span>
+                        <span className="font-medium">₹{mlBasePrice.toFixed(2)}</span>
+                      </div>
+                      {demandIndex != null && (
+                        <div className="flex justify-between">
+                          <span>Demand Factor:</span>
+                          <span className="font-medium">{demandIndex}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <p className="text-red-600 font-medium">{error}</p>
-              </div>
-            )}
+                  <p className="text-xs text-green-50 mt-4 leading-relaxed">
+                    Price calculated using weather conditions, crop demand, diesel prices & local market trends
+                  </p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-red-600 font-medium flex items-center gap-2">
+                    <span>⚠️</span> {error}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
