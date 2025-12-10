@@ -1,10 +1,9 @@
-/** FULL BOOKING.JSX - FINAL VERSION **/
 import React, { useEffect, useState, useMemo } from "react";
-import "../css/Booking.css";
 import api from "../api";
 import { useParams, useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { FaArrowLeft, FaClock, FaRupeeSign, FaCheckCircle, FaCalendarAlt } from "react-icons/fa";
 
 export default function Booking() {
   const { machineId } = useParams();
@@ -162,99 +161,192 @@ export default function Booking() {
     }
   };
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-xl font-semibold text-gray-600">Loading…</div>
+    </div>
+  );
 
   return (
-    <div className="booking-page">
-      <h1>Booking</h1>
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg mb-6 shadow-sm transition-colors"
+      >
+        <FaArrowLeft /> Back
+      </button>
 
-      <div className="booking-layout">
-        {/* LEFT */}
-        <div className="left">
-          <div className="calendar-card">
-            <Calendar
-              onChange={setCalendarDate}
-              value={calendarDate}
-              tileDisabled={({ date }) => {
-                const d = new Date();
-                d.setHours(0, 0, 0, 0);
-                return date < d;
-              }}
-              tileClassName={({ date }) => {
-                if (date.getDay() === 0 || date.getDay() === 6) return null;
-                return null;
-              }}
-            />
-          </div>
-
-          <div className="hour-grid">
-            <h3>Hourly Slots</h3>
-
-            <div className="hour-grid-container">
-              {Array.from({ length: 24 }).map((_, h) => {
-                const booked = isHourBooked(h);
-                const past = isPastHour(h);
-
-                let cls = "hour-slot ";
-                if (booked) cls += " booked";
-                else if (past) cls += " disabled";
-                else cls += " free";
-
-                return (
-                  <button
-                    key={h}
-                    disabled={booked || past}
-                    className={cls}
-                    onClick={() => selectHour(h)}
-                  >
-                    {String(h).padStart(2, "0")}:00
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 mb-6">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <FaCalendarAlt /> Book Your Machine
+          </h1>
+          <p className="text-green-50 mt-2">Select your preferred date and time slot</p>
         </div>
 
-        {/* RIGHT */}
-        <div className="right">
-          <div className="time-card">
-            <h3>Select Time</h3>
-
-            <label>
-              Start Time
-              <input
-                type="datetime-local"
-                min={now.toISOString().slice(0, 16)}
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                className={inputBlocked ? "blocked" : ""}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* LEFT - Calendar & Slots */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Calendar Card */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <FaCalendarAlt className="text-green-600" /> Select Date
+              </h3>
+              <Calendar
+                onChange={setCalendarDate}
+                value={calendarDate}
+                tileDisabled={({ date }) => {
+                  const d = new Date();
+                  d.setHours(0, 0, 0, 0);
+                  return date < d;
+                }}
+                className="w-full border-0 rounded-lg"
               />
-            </label>
+            </div>
 
-            <label>
-              End Time
-              <input
-                type="datetime-local"
-                min={now.toISOString().slice(0, 16)}
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                className={inputBlocked ? "blocked" : ""}
-              />
-            </label>
+            {/* Hour Grid Card */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <FaClock className="text-green-600" /> Available Time Slots
+              </h3>
+
+              <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                {Array.from({ length: 24 }).map((_, h) => {
+                  const booked = isHourBooked(h);
+                  const past = isPastHour(h);
+
+                  let btnClass = "px-4 py-3 rounded-lg font-medium transition-all ";
+                  if (booked) {
+                    btnClass += "bg-red-100 text-red-600 cursor-not-allowed";
+                  } else if (past) {
+                    btnClass += "bg-gray-100 text-gray-400 cursor-not-allowed";
+                  } else {
+                    btnClass += "bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-md";
+                  }
+
+                  return (
+                    <button
+                      key={h}
+                      disabled={booked || past}
+                      className={btnClass}
+                      onClick={() => selectHour(h)}
+                    >
+                      {String(h).padStart(2, "0")}:00
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex gap-4 mt-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 rounded"></div>
+                  <span className="text-gray-600">Available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-100 rounded"></div>
+                  <span className="text-gray-600">Booked</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-gray-100 rounded"></div>
+                  <span className="text-gray-600">Past</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="price-card">
-            <p>Total Hours: {totalHours}</p>
-            <h2>₹{totalPrice.toFixed(2)}</h2>
-          </div>
+          {/* RIGHT - Time Selection & Price */}
+          <div className="space-y-6">
+            {/* Time Selection Card */}
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Select Time Range</h3>
 
-          <button
-            disabled={inputBlocked}
-            className="confirm-btn"
-            onClick={handleBook}
-          >
-            Confirm Booking
-          </button>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    min={now.toISOString().slice(0, 16)}
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                      inputBlocked
+                        ? "border-red-300 bg-red-50 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    min={now.toISOString().slice(0, 16)}
+                    value={end}
+                    onChange={(e) => setEnd(e.target.value)}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                      inputBlocked
+                        ? "border-red-300 bg-red-50 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {inputBlocked && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600 font-medium">
+                    ⚠️ This time slot is unavailable or in the past
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Price Summary Card */}
+            <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+              <h3 className="text-lg font-semibold mb-4">Booking Summary</h3>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-green-100">Total Hours:</span>
+                  <span className="text-2xl font-bold">{totalHours}h</span>
+                </div>
+
+                <div className="border-t border-green-400 pt-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-100">Total Price:</span>
+                    <div className="flex items-center gap-1">
+                      <FaRupeeSign className="text-2xl" />
+                      <span className="text-3xl font-bold">{totalPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Confirm Button */}
+            <button
+              disabled={inputBlocked || !start || !end}
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+                inputBlocked || !start || !end
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl"
+              }`}
+              onClick={handleBook}
+            >
+              <FaCheckCircle /> Confirm Booking
+            </button>
+
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

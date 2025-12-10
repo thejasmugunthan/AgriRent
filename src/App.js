@@ -18,6 +18,7 @@ import Analytics from "./Owner/Analytics";
 import ChatSupport from "./pages/ChatSupport";
 import RenterAnalytics from "./Renter/RenterAnalytics";
 import RateMachine from "./pages/RateMachine";
+import ViewMachine from "./Renter/ViewMachine";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
 
         {/* ⭐ Booking Route — the ONLY correct one */}
         <Route path="/rent-machine/:machineId" element={<Booking />} />
+        <Route path="/view-machine/:machineId" element={<ViewMachine />} />
 
         {/* Owner */}
         <Route path="/owner-dashboard" element={<OwnerDashboard />} />

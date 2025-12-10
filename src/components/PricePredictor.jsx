@@ -1,12 +1,21 @@
-// src/pages/PricePredictor.jsx
 import React, { useState } from "react";
-import "../css/PricePredictor.css";
-
+import { useNavigate } from "react-router-dom";
 import { getWeatherByPincode } from "../api/weatherApi";
 import { getCropInfo } from "../api/cropLogic";
 import { smartPredict } from "../api/smartPredictApi";
+import {
+  FaArrowLeft,
+  FaTractor,
+  FaCloudSun,
+  FaSeedling,
+  FaRupeeSign,
+  FaCalculator,
+  FaMapMarkerAlt,
+  FaClock
+} from "react-icons/fa";
 
 export default function PricePredictor() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     machine_type: "",
     season: "Monsoon",
@@ -125,184 +134,224 @@ export default function PricePredictor() {
   };
 
   return (
-    <div className="pp-container">
-      <h2 className="pp-title">Smart Machine Rental Price Predictor</h2>
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 bg-white hover:bg-gray-100 px-4 py-2 rounded-lg mb-6 shadow-sm transition-colors"
+      >
+        <FaArrowLeft /> Back
+      </button>
 
-      <form className="pp-form" onSubmit={handlePredict}>
-        <div className="pp-field">
-          <label>Machine Type</label>
-          <select
-            name="machine_type"
-            value={form.machine_type}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select machine</option>
-            {machineTypes.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="pp-field">
-          <label>Duration (hours)</label>
-          <input
-            type="number"
-            name="duration_hours"
-            min="1"
-            value={form.duration_hours}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="pp-field">
-          <label>Season</label>
-          <select
-            name="season"
-            value={form.season}
-            onChange={handleChange}
-          >
-            {seasons.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="pp-field">
-          <label>Crop Type</label>
-          <select
-            name="crop_type"
-            value={form.crop_type}
-            onChange={handleChange}
-          >
-            {crops.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="pp-field">
-          <label>Pincode (Location)</label>
-          <input
-            name="pincode"
-            value={form.pincode}
-            onChange={handleChange}
-            placeholder="560001"
-          />
-        </div>
-
-        <button className="pp-btn" type="submit" disabled={loading}>
-          {loading ? "Predicting..." : "🔮 Predict Price"}
-        </button>
-      </form>
-
-      {/* WEATHER + CROP CARD */}
-      {(weather || cropInfo) && (
-        <div className="pp-result" style={{ marginTop: 18 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            {weather && (
-              <div>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "#2b2b2b",
-                    fontWeight: 700,
-                  }}
-                >
-                  Location Insights
-                </p>
-                <div style={{ color: "#3b3b3b" }}>
-                  <div>Temperature: {weather.temp}°C</div>
-                  <div>Humidity: {weather.humidity}%</div>
-                  <div>Rainfall: {weather.rain} mm</div>
-                  {dieselPrice != null && (
-                    <div>Diesel Price: ₹ {Number(dieselPrice).toFixed(2)}</div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {cropInfo && (
-              <div>
-                <p
-                  style={{
-                    margin: 0,
-                    color: "#2b2b2b",
-                    fontWeight: 700,
-                  }}
-                >
-                  Crop Insights
-                </p>
-                <div style={{ color: "#3b3b3b" }}>
-                  <div>{cropInfo.notes}</div>
-                  {cropInfo.recommendedMachines && (
-                    <div>
-                      Recommended:{" "}
-                      {cropInfo.recommendedMachines.join(", ")}
-                    </div>
-                  )}
-                  {demandIndex != null && (
-                    <div>Demand Index: {demandIndex}</div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* FINAL PRICE CARD */}
-      {price != null && (
-        <div className="pp-result" style={{ marginTop: 16 }}>
-          <p
-            style={{
-              margin: 0,
-              color: "#2b2b2b",
-              fontWeight: 700,
-            }}
-          >
-            Estimated Hourly Rent
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 md:p-8 mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+            <FaCalculator /> Smart Price Predictor
+          </h1>
+          <p className="text-green-50 mt-2 text-lg">
+            Get AI-powered rental price predictions based on weather, crop demand & market trends
           </p>
-          <h2 style={{ margin: "8px 0", color: "#1b5e20" }}>
-            ₹ {Number(price).toFixed(2)}
-          </h2>
+        </div>
 
-          {mlBasePrice != null && (
-            <div style={{ color: "#555", fontSize: 12 }}>
-              <div>Base ML price (before demand factor): ₹ {mlBasePrice.toFixed(2)}</div>
-              {demandIndex != null && (
-                <div>Applied demand factor: {demandIndex}</div>
-              )}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Left - Form */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <FaTractor className="text-green-600" /> Enter Details
+              </h2>
+
+              <form onSubmit={handlePredict} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaTractor className="inline mr-2 text-green-600" />
+                    Machine Type
+                  </label>
+                  <select
+                    name="machine_type"
+                    value={form.machine_type}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                  >
+                    <option value="">Select machine</option>
+                    {machineTypes.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaClock className="inline mr-2 text-green-600" />
+                    Duration (hours)
+                  </label>
+                  <input
+                    type="number"
+                    name="duration_hours"
+                    min="1"
+                    value={form.duration_hours}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FaCloudSun className="inline mr-2 text-green-600" />
+                      Season
+                    </label>
+                    <select
+                      name="season"
+                      value={form.season}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                    >
+                      {seasons.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FaSeedling className="inline mr-2 text-green-600" />
+                      Crop Type
+                    </label>
+                    <select
+                      name="crop_type"
+                      value={form.crop_type}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                    >
+                      {crops.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FaMapMarkerAlt className="inline mr-2 text-green-600" />
+                    Pincode (Location)
+                  </label>
+                  <input
+                    name="pincode"
+                    value={form.pincode}
+                    onChange={handleChange}
+                    placeholder="e.g., 560001"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
+                    loading
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl"
+                  }`}
+                >
+                  <FaCalculator />
+                  {loading ? "Predicting..." : "Predict Price"}
+                </button>
+              </form>
             </div>
-          )}
+          </div>
 
-          <div style={{ color: "#555", marginTop: 4 }}>
-            <small>
-              Price estimated using weather, crop demand, diesel price & local
-              market trends.
-            </small>
+          {/* Right - Results */}
+          <div className="space-y-6">
+            {/* Weather & Crop Insights */}
+            {(weather || cropInfo) && (
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">
+                  <FaCloudSun className="inline text-green-600 mr-2" />
+                  Insights
+                </h3>
+
+                {weather && (
+                  <div className="mb-4 pb-4 border-b border-gray-200">
+                    <p className="font-semibold text-gray-700 mb-2">Location Data</p>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>Temperature: <span className="font-medium">{weather.temp}°C</span></p>
+                      <p>Humidity: <span className="font-medium">{weather.humidity}%</span></p>
+                      <p>Rainfall: <span className="font-medium">{weather.rain} mm</span></p>
+                      {dieselPrice != null && (
+                        <p>Diesel Price: <span className="font-medium">₹{Number(dieselPrice).toFixed(2)}</span></p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {cropInfo && (
+                  <div>
+                    <p className="font-semibold text-gray-700 mb-2">
+                      <FaSeedling className="inline text-green-600 mr-1" />
+                      Crop Intelligence
+                    </p>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>{cropInfo.notes}</p>
+                      {cropInfo.recommendedMachines && (
+                        <p className="mt-2">
+                          <span className="font-medium">Recommended:</span>{" "}
+                          {cropInfo.recommendedMachines.join(", ")}
+                        </p>
+                      )}
+                      {demandIndex != null && (
+                        <p>
+                          <span className="font-medium">Demand Index:</span> {demandIndex}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Price Result */}
+            {price != null && (
+              <div className="bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+                <h3 className="text-lg font-semibold mb-3">Predicted Price</h3>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <FaRupeeSign className="text-3xl" />
+                  <span className="text-5xl font-bold">{Number(price).toFixed(2)}</span>
+                  <span className="text-green-100 text-lg">/hour</span>
+                </div>
+
+                {mlBasePrice != null && (
+                  <div className="text-sm text-green-100 space-y-1 border-t border-green-400 pt-3">
+                    <p>Base ML Price: ₹{mlBasePrice.toFixed(2)}</p>
+                    {demandIndex != null && (
+                      <p>Demand Factor: {demandIndex}</p>
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-green-50 mt-4">
+                  Price calculated using weather conditions, crop demand, diesel prices & local market trends
+                </p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 font-medium">{error}</p>
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {error && (
-        <div className="pp-error" style={{ marginTop: 16 }}>
-          {error}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
