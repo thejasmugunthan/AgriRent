@@ -1,0 +1,84 @@
+/* PAGE */
+.booking-page {
+  padding: 20px 6vw;
+  background: #f5f7fb;
+}
+
+/* GRID */
+.booking-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* CARDS */
+.calendar-card,
+.time-card,
+.price-card {
+  background: white;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+/* HOUR GRID */
+.hour-grid-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.hour-slot {
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 12px;
+  transition: 0.2s;
+}
+
+.hour-slot.free {
+  background: #e5e7eb;
+}
+.hour-slot.free:hover {
+  background: #dbeafe;
+  cursor: pointer;
+}
+
+.hour-slot.booked {
+  background: #fecaca;
+  color: #7f1d1d;
+  cursor: not-allowed;
+}
+
+.hour-slot.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* INPUTS */
+.blocked {
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+}
+
+/* BUTTON */
+.confirm-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+}

@@ -1,0 +1,48 @@
+.rm-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.rm-card {
+  width: 400px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.rate {
+  font-size: 22px;
+  color: #0f5132;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-top: 15px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #aaa;
+  border-radius: 10px;
+  margin-top: 5px;
+}
+
+.book-btn {
+  width: 100%;
+  padding: 12px;
+  background: #198754;
+  color: white;
+  font-size: 18px;
+  border: none;
+  border-radius: 10px;
+  margin-top: 20px;
+  cursor: pointer;
+}

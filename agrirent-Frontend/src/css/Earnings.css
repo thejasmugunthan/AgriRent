@@ -1,0 +1,63 @@
+.earnings-page {
+  padding: 20px;
+  background: #f4f7fc;
+}
+
+.earnings-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  background: #ff3b3b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.earnings-top-card {
+  background: #007bff;
+  padding: 35px;
+  color: white;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 22px;
+  margin-bottom: 25px;
+}
+
+.filter-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-container select,
+.filter-container input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(330px,1fr));
+  gap: 20px;
+}
+
+.chart-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+}
+
+.rental-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 15px;
+}
