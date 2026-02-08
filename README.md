@@ -12,27 +12,27 @@ Database: MySQL
 Other: REST APIs, JWT Authentication
 
 ## Project Structure
-agrirent
-• frontend
-  • components – reusable UI parts
-  • pages – application pages
-  • services – API calls & logic
-  • assets – images, icons, styles
 
-• backend
-  • controllers – request handling & business logic
-  • routes – API endpoints
-  • models – database models
-  • middleware – authentication & validation
-  • config – server & database configuration
+- **agrirent/**
+  - **frontend/**
+    - **components/** – reusable UI parts  
+    - **pages/** – application pages  
+    - **services/** – API calls & business logic  
+    - **assets/** – images, icons, styles  
 
-• database
-  • agrirent.sql – database schema
+  - **backend/**
+    - **controllers/** – request handling & core logic  
+    - **routes/** – API endpoints  
+    - **models/** – database models  
+    - **middleware/** – authentication & validation  
+    - **config/** – server & database configuration  
 
-• uploads – stored images/files  
-• README.md – project documentation  
-• package.json – dependencies & scripts
+  - **database/**
+    - **agrirent.sql** – database schema  
 
+  - **uploads/** – stored images & files  
+  - **README.md** – project documentation  
+  - **package.json** – dependencies & scripts
 
 
 ## How to Run the Project
