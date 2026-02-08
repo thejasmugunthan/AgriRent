@@ -12,23 +12,29 @@ Database: MySQL
 Other: REST APIs, JWT Authentication
 
 ## Project Structure
-agrirent/
-├── frontend/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── assets/
-├── backend/
-│   ├── controllers/
-│   ├── routes/
-│   ├── models/
-│   ├── middleware/
-│   └── config/
-├── database/
-│   └── agrirent.sql
-├── uploads/
-├── README.md
-└── package.json
+agrirent
+│
+├─ frontend
+│  ├─ components
+│  ├─ pages
+│  ├─ services
+│  └─ assets
+│
+├─ backend
+│  ├─ controllers
+│  ├─ routes
+│  ├─ models
+│  ├─ middleware
+│  └─ config
+│
+├─ database
+│  └─ agrirent.sql
+│
+├─ uploads
+│
+├─ README.md
+└─ package.json
+
 
 ## How to Run the Project
 1. Clone the repository  
