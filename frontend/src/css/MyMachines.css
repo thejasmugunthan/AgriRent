@@ -1,0 +1,7 @@
+.machines-container { padding: 36px; }
+.machines-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+.add-btn { background:#0a5d0a; color:#fff; padding:10px 14px; border-radius:8px; border:none; }
+.table-card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+.machines-table { width:100%; border-collapse:collapse; }
+.machines-table th, .machines-table td { padding:12px; border-bottom:1px solid #eee; text-align:left; }
+.del { background:#c62828; color:#fff; padding:6px 10px; border-radius:6px; border:none; }

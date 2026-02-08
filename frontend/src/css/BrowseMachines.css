@@ -1,0 +1,167 @@
+
+.input {
+  padding: 0.6rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.6rem;
+  width: 100%;
+}
+
+
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sidebar-btn:hover {
+  background: #f3f4f6;
+}
+
+.sidebar-btn.bg-green-100 {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sidebar-btn.text-red-600:hover {
+  background: #fee2e2;
+}
+
+
+.filter-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.9rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+
+.sort-btn {
+  background: #16a34a;
+  color: white;
+  padding: 0.6rem 1.5rem;
+  border-radius: 0.6rem;
+  font-weight: 600;
+}
+
+.gps-btn {
+  background: #2563eb;
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+}
+
+
+.machine-card {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.machine-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+}
+
+.machine-image {
+  height: 185px;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  padding: 0.5rem;
+}
+
+.machine-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
+.machine-price {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #f59e0b;
+}
+
+.rent-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+}
+
+.rent-btn.available {
+  background: linear-gradient(to right, #16a34a, #22c55e);
+  color: white;
+}
+
+.rent-btn.disabled {
+  background: #e5e7eb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #111827; 
+  opacity: 1 !important;
+}
+
+
+p, label, span, small {
+  color: #374151; 
+  opacity: 1 !important;
+}
+
+
+aside,
+.sidebar,
+.sidebar button,
+.sidebar a {
+  color: #111827;
+  opacity: 1 !important;
+}
+
+.card h3,
+.card h4 {
+  color: #14532d;
+}
+
+.card p {
+  color: #374151;
+}
+
+input,
+select,
+textarea {
+  color: #111827;
+}
+
+input::placeholder,
+select::placeholder {
+  color: #6b7280; 
+  opacity: 1;
+}
+
+.recharts-text,
+.recharts-label,
+.recharts-cartesian-axis-tick-value {
+  fill: #111827 !important;
+  opacity: 1 !important;
+}
+
+button {
+  color: inherit;
+  opacity: 1 !important;
+}

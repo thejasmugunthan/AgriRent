@@ -1,0 +1,181 @@
+
+.rentals-container {
+  padding: 30px;
+  background: #f5f7fa;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.rentals-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rentals-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.tab {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #dde3f0;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.tab.active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rental-card {
+  background: #ffffff;
+  padding: 18px 22px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.rental-info h3 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.machine-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.machine-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.machine-type {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.rental-info p {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+.rental-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  min-width: 120px;
+}
+
+.chat-btn {
+  background: #3b82f6;
+}
+
+.details-btn {
+  background: #10b981;
+}
+
+.cancel-btn {
+  background: #ef4444;
+}
+
+.extend-btn {
+  background: #facc15;
+  color: #1f2933;
+}
+
+.rate-btn {
+  background: #f97316;
+}
+
+.chat-btn:hover {
+  filter: brightness(1.05);
+}
+
+.details-btn:hover {
+  filter: brightness(1.05);
+}
+
+.cancel-btn:hover {
+  filter: brightness(0.95);
+}
+
+.extend-btn:hover {
+  filter: brightness(0.95);
+}
+
+.rate-btn:hover {
+  filter: brightness(1.05);
+}
+
+.status-badge {
+  margin-top: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-badge.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge.completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.empty-text {
+  margin-top: 40px;
+  font-size: 16px;
+  color: #64748b;
+}

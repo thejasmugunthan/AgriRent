@@ -1,0 +1,4 @@
+.login-page { display:flex; justify-content:center; align-items:center; padding:60px; }
+.login-form { width:380px; background:#fff; padding:24px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.06); }
+.login-form input { width:100%; padding:10px; margin-bottom:10px; border-radius:6px; border:1px solid #ddd; }
+.login-form button { width:100%; padding:10px; background:#0a5d0a; color:white; border:none; border-radius:6px; }
