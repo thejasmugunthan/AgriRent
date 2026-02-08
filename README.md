@@ -66,4 +66,5 @@ Online payment integration, location-based equipment search, rating and review s
 ## Author
 Thejas M – Full Stack Developer
 
+
 AgriRent is built with the idea of making farming smarter, affordable, and more accessible through technology.
