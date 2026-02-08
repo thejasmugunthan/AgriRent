@@ -13,27 +13,26 @@ Other: REST APIs, JWT Authentication
 
 ## Project Structure
 agrirent
-│
-├─ frontend
-│  ├─ components
-│  ├─ pages
-│  ├─ services
-│  └─ assets
-│
-├─ backend
-│  ├─ controllers
-│  ├─ routes
-│  ├─ models
-│  ├─ middleware
-│  └─ config
-│
-├─ database
-│  └─ agrirent.sql
-│
-├─ uploads
-│
-├─ README.md
-└─ package.json
+• frontend
+  • components – reusable UI parts
+  • pages – application pages
+  • services – API calls & logic
+  • assets – images, icons, styles
+
+• backend
+  • controllers – request handling & business logic
+  • routes – API endpoints
+  • models – database models
+  • middleware – authentication & validation
+  • config – server & database configuration
+
+• database
+  • agrirent.sql – database schema
+
+• uploads – stored images/files  
+• README.md – project documentation  
+• package.json – dependencies & scripts
+
 
 
 ## How to Run the Project
