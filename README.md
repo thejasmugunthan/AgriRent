@@ -63,9 +63,6 @@ POST /api/rent – Rent equipment
 ## Future Enhancements
 Online payment integration, location-based equipment search, rating and review system, mobile app support, and AI-based recommendations.
 
-## License
-This project is licensed under the MIT License.
-
 ## Author
 Thejas M – Full Stack Developer
 
