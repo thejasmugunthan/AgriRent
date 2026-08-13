@@ -11,7 +11,7 @@ Backend: Node.js, Express.js
 Database: MySQL  
 Other: REST APIs, JWT Authentication
 
-## Project Structure
+## Project Structures
 
 - **agrirent/**
   - **frontend/**
