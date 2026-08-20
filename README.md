@@ -1,4 +1,4 @@
-# 🌾 AgriRent – Agricultural Equipment Rental Platform
+# 🌾 AgriRent – Agricultural Equipment Rental Platforms
 
 AgriRent is a web-based application that helps farmers rent agricultural equipment easily while allowing equipment owners to earn by renting out their machines. Instead of spending a large amount of money on buying farming machinery, farmers can search, view, and rent equipment based on their needs. The platform connects farmers and equipment owners in one simple, user-friendly system with secure authentication and rental management.
 
